@@ -1,0 +1,11 @@
+☐ Do something about memory access. @created(20-04-15 00:50)
+    Memory Access right now basically just access ROM only, randomly accessing RAM for some opcodes.
+    There's no actual checking of address ranges to know what to try to access memory for.
+    This is causing issues now with the test rom file starting to access RAM, then getting ROM data back.
+
+☐ Setup SDL and OpenGL to have a window of some sort. @created(20-04-15 00:53)
+    Not really necessary while working on CPU, but at some point there will need to be a window...
+
+☐ Setup ImGUI @created(20-04-15 00:54)
+    Easy to use to add debug stuff to a window, instead of reading through terminal for everything.
+    Will need it at some point, same as a window..
