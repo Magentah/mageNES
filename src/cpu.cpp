@@ -188,8 +188,8 @@ void CPU6502::executeInstruction(uint8_t instruction)
         // LDX - Load X Register
         case 0xA2: this->ldx(AddressingMode::IMMEDIATE, 2); break;
         case 0xA6: this->ldx(AddressingMode::ZERO_PAGE, 3); break;
-        case 0xAE: this->ldx(AddressingMode::ZERO_PAGE_Y, 4); break;
-        case 0xB6: this->ldx(AddressingMode::ABSOLUTE, 4); break;
+        case 0xAE: this->ldx(AddressingMode::ABSOLUTE, 4); break;
+        case 0xB6: this->ldx(AddressingMode::ZERO_PAGE_Y, 4); break;
         case 0xBE: this->ldx(AddressingMode::ABSOLUTE_Y, 4); break;
 
         // LDY - Load Y Register
@@ -600,8 +600,8 @@ void CPU6502::bit(AddressingMode mode, int ticks)
     uint16_t data = *this->ram.read(address);
     uint16_t result = this->registers.accumulator & data;
     this->setStatusFlag(StatusFlag::ZERO, result == 0);
-    this->setStatusFlag(StatusFlag::OVERFLOW, (result >> 6) & 1);
-    this->setStatusFlag(StatusFlag::NEGATIVE, (result >> 7) & 1);
+    this->setStatusFlag(StatusFlag::OVERFLOW, (data >> 6) & 1);
+    this->setStatusFlag(StatusFlag::NEGATIVE, (data >> 7) & 1);
 }
 
 void CPU6502::brk(AddressingMode mode, int ticks)
@@ -1079,8 +1079,6 @@ void CPU6502::txs(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     this->registers.stackPointer = this->registers.x;
-    this->setStatusFlag(StatusFlag::ZERO, this->registers.stackPointer == 0);
-    this->setStatusFlag(StatusFlag::NEGATIVE, this->registers.stackPointer & 0x80);
 }
 
 void CPU6502::tya(AddressingMode mode, int ticks)
