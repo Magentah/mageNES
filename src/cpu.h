@@ -3,17 +3,20 @@
 #include "rom.h"
 #include "ram.h"
 
-const uint16_t PROGRAM_COUNTER_STARTUP_VAL = 0xC000;
-const uint8_t STACK_POINTER_STARTUP_VAL = 0xFD;
+#define PROGRAM_COUNTER_STARTUP_VAL 0xC000
+#define STACK_POINTER_STARTUP_VAL 0xFD
+#define STATUS_REGISTER_STARTUP_VAL 0x24
 
 enum StatusFlag
 {
-    CARRY = 0x01,
-    ZERO = 0x02,
-    INTERRUPT_DISABLE = 0x04,
-    DECIMAL = 0x08,
-    OVERFLOW = 0x0F,
-    NEGATIVE = 0x10
+    CARRY = 1 << 0,
+    ZERO = 1 << 1,
+    INTERRUPT_DISABLE = 1 << 2,
+    DECIMAL = 1 << 3,
+    BIT4 = 1 << 4,
+    BIT5 = 1 << 5,
+    OVERFLOW = 1 << 6,
+    NEGATIVE = 1 << 7
 };
 
 enum AddressingMode
@@ -28,7 +31,9 @@ enum AddressingMode
     ABSOLUTE_Y,
     INDIRECT,
     INDIRECT_X,
-    INDIRECT_Y
+    INDIRECT_Y,
+    ACCUMULATOR,
+    IMPLIED
 };
 
 struct Registers
@@ -46,6 +51,7 @@ class CPU6502
 private:
     Registers registers;
     int cycle = 7;
+    int ppu = 0;
     ROM* rom;
     RAM ram;
 
@@ -106,6 +112,7 @@ private:
     void lsr(AddressingMode mode, int ticks);
     void nop(AddressingMode mode, int ticks);
     void ora(AddressingMode mode, int ticks);
+    void pha(AddressingMode mode, int ticks);
     void phr(AddressingMode mode, int ticks);
     void php(AddressingMode mode, int ticks);
     void pla(AddressingMode mode, int ticks);
@@ -116,15 +123,15 @@ private:
     void rts(AddressingMode mode, int ticks);
     void sbc(AddressingMode mode, int ticks);
     void sec(int ticks);
-    void sed(AddressingMode mode, int ticks);
-    void sei(AddressingMode mode, int ticks);
+    void sed(int ticks);
+    void sei(int ticks);
     void sta(AddressingMode mode, int ticks);
     void stx(AddressingMode mode, int ticks);
     void sty(AddressingMode mode, int ticks);
     void tax(AddressingMode mode, int ticks);
     void tay(AddressingMode mode, int ticks);
     void tsx(AddressingMode mode, int ticks);
-    void tsa(AddressingMode mode, int ticks);
+    void txa(AddressingMode mode, int ticks);
     void txs(AddressingMode mode, int ticks);
     void tya(AddressingMode mode, int ticks);
 
