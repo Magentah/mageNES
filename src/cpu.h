@@ -59,7 +59,6 @@ private:
     int ppu = 0;
     Engine& engine;
 
-
     void notImplemented(uint8_t instruction);
     void unknownInstruction(uint8_t instruction);
     void tickIfNewPage(uint16_t programCounter, uint16_t newProgramCounter);
@@ -81,7 +80,7 @@ private:
     uint16_t indirectX();
     uint16_t indirectY(bool extraTick);
 
-    uint16_t addressing(AddressingMode mode, bool extraTick = false);
+    uint16_t getAddress(AddressingMode mode, bool extraTick = false);
 
     // instructions
     void adc(AddressingMode mode, int ticks);

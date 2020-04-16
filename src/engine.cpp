@@ -25,6 +25,16 @@ void Engine::run()
     }
 }
 
+void Engine::pushStack(uint8_t address, uint8_t data)
+{
+    this->ram.write(address + 0x0100, data);
+}
+
+std::shared_ptr<uint8_t> Engine::popStack(uint8_t address)
+{
+    return this->ram.read(address + 0x0100);   
+}
+
 std::shared_ptr<uint8_t> Engine::read(uint16_t address)
 {
     if (address < 0x2000)
