@@ -10,5 +10,5 @@ file(GLOB NesEmu_SOURCE
     "src/*.h"    
 )
 
-add_executable(nesemu "src/main.cpp" "src/cpu.h" "src/cpu.cpp" "src/rom.h" "src/rom.cpp" "src/ram.h" "src/ram.cpp")
+add_executable(nesemu "src/main.cpp" "src/cpu.h" "src/cpu.cpp" "src/rom.h" "src/rom.cpp" "src/ram.h" "src/ram.cpp" "src/engine.h" "src/engine.cpp")
 target_link_libraries(nesemu stdc++fs)

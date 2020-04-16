@@ -1,9 +1,9 @@
 #include "ram.h"
 
-uint8_t* RAM::read(uint16_t address)
+std::shared_ptr<uint8_t> RAM::read(uint16_t address)
 {
     address %= RAM_SIZE;
-    return &ram[address];
+    return std::make_shared<uint8_t>(ram[address]);
 }
 
 void RAM::write(uint16_t address, uint8_t data)

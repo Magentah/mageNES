@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 enum Flag6 {
     MIRRORING = 0x01,
@@ -46,7 +47,7 @@ private:
     const int PRG_SIZE_MULTIPLE = 16384;
     const int CHR_SIZE_MULTIPLE = 8192;
 public:
-    void load(const std::string romFilePath, uint16_t prgOffset);
+    bool load(const std::string romFilePath, uint16_t prgOffset);
     void printHeader();
-    uint8_t* read(uint16_t address);
+    std::shared_ptr<uint8_t> read(uint16_t address);
 };

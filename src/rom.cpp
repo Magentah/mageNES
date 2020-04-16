@@ -4,7 +4,7 @@
 #include <bitset>
 #include <iostream>
 
-void ROM::load(const std::string romFilePath, uint16_t prgOffset) 
+bool ROM::load(const std::string romFilePath, uint16_t prgOffset) 
 {
     std::ifstream file(romFilePath, std::ios::binary);
     if (file.is_open()) 
@@ -39,7 +39,9 @@ void ROM::load(const std::string romFilePath, uint16_t prgOffset)
         }
         this->prgOffset = prgOffset;
         this->isLoaded = true;
+        return true;
     }
+    return false;
 }
 
 void ROM::printHeader() 
@@ -60,8 +62,8 @@ void ROM::printHeader()
     }
 }
 
-uint8_t* ROM::read(uint16_t address)
+std::shared_ptr<uint8_t> ROM::read(uint16_t address)
 {
     address = (address - this->prgOffset) % this->prgData.size();
-    return &this->prgData[address];
+    return std::make_shared<uint8_t>(std::move(this->prgData[address]));
 }

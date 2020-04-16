@@ -1,5 +1,10 @@
 #pragma once
 
+class Engine;
+
+#include <memory>
+#include "engine.h"
+
 #include "rom.h"
 #include "ram.h"
 
@@ -52,14 +57,16 @@ private:
     Registers registers;
     int cycle = 7;
     int ppu = 0;
-    ROM* rom;
-    RAM ram;
+    Engine& engine;
+
 
     void notImplemented(uint8_t instruction);
     void unknownInstruction(uint8_t instruction);
     void tickIfNewPage(uint16_t programCounter, uint16_t newProgramCounter);
     void tick(int times = 1);
     void printStatus(uint8_t instruction);
+    uint8_t getInstruction();
+    void executeInstruction(uint8_t address);
 
     // addressing modes
     uint16_t immediate();
@@ -138,12 +145,9 @@ private:
 public:
     void startup();
     void reset();
-    void load(ROM& rom);
-    uint8_t getInstruction();
-    void executeInstruction(uint8_t address);
     void step();
-    void shutdown();
-
+    CPU6502(Engine& engine);
+    ~CPU6502();
     
     void setStatusFlag(StatusFlag flag, bool enabled);
 };

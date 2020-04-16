@@ -3,6 +3,12 @@
 #include <iostream>
 #include <iomanip>
 
+CPU6502::CPU6502(Engine& engine)
+    :engine(engine)
+    {}
+
+CPU6502::~CPU6502() {}
+
 void CPU6502::startup()
 {
     this->registers.x = 0;
@@ -20,7 +26,7 @@ void CPU6502::reset()
 
 uint8_t CPU6502::getInstruction()
 {
-    uint8_t instruction = *this->rom->read(this->registers.programCounter);
+    uint8_t instruction = *this->engine.read(this->registers.programCounter);
     return instruction;
 }
 
@@ -316,16 +322,6 @@ void CPU6502::step()
     this->registers.programCounter++;
 }
 
-void CPU6502::load(ROM& rom) 
-{
-    this->rom = &rom;
-}
-
-void CPU6502::shutdown()
-{
-    this->rom = nullptr;
-}
-
 void CPU6502::setStatusFlag(StatusFlag flag, bool enabled)
 {
     if (enabled)
@@ -361,7 +357,7 @@ void CPU6502::tick(int times)
 // Addressing Modes
 uint16_t CPU6502::immediate()
 {
-    return *this->rom->read(++this->registers.programCounter);
+    return *this->engine.read(++this->registers.programCounter);
 }
 
 uint16_t CPU6502::relative()
@@ -372,26 +368,26 @@ uint16_t CPU6502::relative()
 
 uint16_t CPU6502::zeroPage()
 {
-    uint8_t address = *this->rom->read(++this->registers.programCounter);
+    uint8_t address = *this->engine.read(++this->registers.programCounter);
     return address % 256;
 }
 
 uint16_t CPU6502::zeroPageX()
 {
-    uint8_t address = *this->rom->read(++this->registers.programCounter);
+    uint8_t address = *this->engine.read(++this->registers.programCounter);
     return (address + this->registers.x) % 256;
 }
 
 uint16_t CPU6502::zeroPageY()
 {
-    uint8_t address = *this->rom->read(++this->registers.programCounter);
+    uint8_t address = *this->engine.read(++this->registers.programCounter);
     return (address + this->registers.y) % 256;
 }
 
 uint16_t CPU6502::absolute()
 {
-    uint8_t lsb = *this->rom->read(++this->registers.programCounter);
-    uint8_t msb = *this->rom->read(++this->registers.programCounter);
+    uint8_t lsb = *this->engine.read(++this->registers.programCounter);
+    uint8_t msb = *this->engine.read(++this->registers.programCounter);
     uint16_t address = (msb << 8) + lsb;
     return address;
 }
@@ -415,9 +411,9 @@ uint16_t CPU6502::absoluteY(bool extraTick)
 uint16_t CPU6502::indirect()
 {
     uint16_t address = this->absolute();
-    uint8_t lsb = *this->rom->read(address);
+    uint8_t lsb = *this->engine.read(address);
     uint16_t msbAddress = (address & 0xFF) == 0xFF ? address & 0xFF00 : address + 1;
-    uint8_t msb = *this->rom->read(msbAddress);
+    uint8_t msb = *this->engine.read(msbAddress);
     uint16_t returnAddress = (msb << 8) + lsb;
     return returnAddress;
 }
@@ -425,8 +421,8 @@ uint16_t CPU6502::indirect()
 uint16_t CPU6502::indirectX()
 {
     uint16_t operand = this->absoluteX(false);
-    uint8_t lsb = *this->rom->read(operand);
-    uint8_t msb = *this->rom->read((operand + 1) % 256);
+    uint8_t lsb = *this->engine.read(operand);
+    uint8_t msb = *this->engine.read((operand + 1) % 256);
     uint16_t address = (msb << 8) + lsb;
     return address;
 }
@@ -434,8 +430,8 @@ uint16_t CPU6502::indirectX()
 uint16_t CPU6502::indirectY(bool extraTick)
 {
     uint16_t operand = this->immediate();
-    uint8_t lsb = *this->rom->read(operand);
-    uint8_t msb = *this->rom->read((operand + 1) % 256);
+    uint8_t lsb = *this->engine.read(operand);
+    uint8_t msb = *this->engine.read((operand + 1) % 256);
     uint16_t address = (msb << 8) + lsb;
     if (extraTick)
         this->tickIfNewPage(address, address + this->registers.y);
@@ -597,8 +593,8 @@ void CPU6502::bit(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     uint16_t address = this->addressing(mode);
-    uint16_t data = *this->ram.read(address);
-    uint16_t result = this->registers.accumulator & data;
+    uint8_t data = *this->engine.read(address);
+    uint8_t result = this->registers.accumulator & data;
     this->setStatusFlag(StatusFlag::ZERO, result == 0);
     this->setStatusFlag(StatusFlag::OVERFLOW, (data >> 6) & 1);
     this->setStatusFlag(StatusFlag::NEGATIVE, (data >> 7) & 1);
@@ -609,15 +605,15 @@ void CPU6502::brk(AddressingMode mode, int ticks)
     this->tick(ticks);
     uint8_t lsb = this->registers.programCounter & 0xFF;
     uint8_t msb = this->registers.programCounter >> 8;
-    this->ram.write(this->registers.stackPointer--, msb);
-    this->ram.write(this->registers.stackPointer--, lsb);
+    this->engine.write(this->registers.stackPointer--, msb);
+    this->engine.write(this->registers.stackPointer--, lsb);
     // BRK sets Bit 4 when pushing status register
     // Bit 5 should always be set.
-    this->ram.write(this->registers.stackPointer--, (this->registers.statusRegister | StatusFlag::BIT4 | StatusFlag::BIT5));
+    this->engine.write(this->registers.stackPointer--, (this->registers.statusRegister | StatusFlag::BIT4 | StatusFlag::BIT5));
 
-    uint8_t* irclsb = this->rom->read(0xFFFE);
-    uint8_t* ircmsb = this->rom->read(0xFFFF);
-    this->registers.programCounter = ((*ircmsb >> 8) + *irclsb) - 1;
+    uint8_t irclsb = *this->engine.read(0xFFFE);
+    uint8_t ircmsb = *this->engine.read(0xFFFF);
+    this->registers.programCounter = ((ircmsb >> 8) + irclsb) - 1;
 }
 
 void CPU6502::bpl(AddressingMode mode, int ticks)
@@ -724,8 +720,8 @@ void CPU6502::dec(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     uint16_t address = this->addressing(mode, true);
-    uint8_t* data = this->ram.read(address);
-    *data--;
+    std::shared_ptr<uint8_t> data = this->engine.read(address);
+    (*data)--;
     this->setStatusFlag(StatusFlag::ZERO, *data == 0);
     this->setStatusFlag(StatusFlag::NEGATIVE, *data & 0x80);
 }
@@ -767,8 +763,8 @@ void CPU6502::inc(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     uint16_t address = this->addressing(mode);
-    uint8_t* data = this->ram.read(address);
-    *data++;
+    std::shared_ptr<uint8_t> data = this->engine.read(address);
+    (*data)++;
     this->setStatusFlag(StatusFlag::ZERO, *data == 0);
     this->setStatusFlag(StatusFlag::NEGATIVE, *data & 0x80);
 }
@@ -804,8 +800,8 @@ void CPU6502::jsr(AddressingMode mode, int ticks)
     uint16_t pc = this->registers.programCounter - 1;
     uint8_t lsb = pc & 0xFF;
     uint8_t msb = pc >> 8;
-    this->ram.write(this->registers.stackPointer--, msb);
-    this->ram.write(this->registers.stackPointer--, lsb);
+    this->engine.write(this->registers.stackPointer--, msb);
+    this->engine.write(this->registers.stackPointer--, lsb);
     this->registers.programCounter = data - 1;
 }
 
@@ -881,7 +877,7 @@ void CPU6502::ora(AddressingMode mode, int ticks)
 void CPU6502::pha(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
-    this->ram.write(this->registers.stackPointer--, this->registers.accumulator);
+    this->engine.write(this->registers.stackPointer--, this->registers.accumulator);
 }
 
 void CPU6502::php(AddressingMode mode, int ticks)
@@ -889,13 +885,13 @@ void CPU6502::php(AddressingMode mode, int ticks)
     this->tick(ticks);
     // PHP sets Bit 4 when pushing the status register.
     // Bit 5 should always be set.
-    this->ram.write(this->registers.stackPointer--, (this->registers.statusRegister | StatusFlag::BIT4 | StatusFlag::BIT5));
+    this->engine.write(this->registers.stackPointer--, (this->registers.statusRegister | StatusFlag::BIT4 | StatusFlag::BIT5));
 }
 
 void CPU6502::pla(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
-    uint8_t data = *this->ram.read(++this->registers.stackPointer);
+    uint8_t data = *this->engine.read(++this->registers.stackPointer);
     this->registers.accumulator = data;
     this->setStatusFlag(StatusFlag::ZERO, this->registers.accumulator == 0);
     this->setStatusFlag(StatusFlag::NEGATIVE, this->registers.accumulator & 0x80);
@@ -904,7 +900,7 @@ void CPU6502::pla(AddressingMode mode, int ticks)
 void CPU6502::plp(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
-    uint8_t newStatus = *this->ram.read(++this->registers.stackPointer);
+    uint8_t newStatus = *this->engine.read(++this->registers.stackPointer);
     // PLP ignores the BIT4 register when reading
     // Set BIT5 in case of pulling a non-status register stack value that doesn't have it set.
     newStatus &= ~StatusFlag::BIT4;
@@ -973,9 +969,9 @@ void CPU6502::ror(AddressingMode mode, int ticks)
 void CPU6502::rti(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
-    uint8_t status = *this->ram.read(++this->registers.stackPointer);
-    uint8_t lsb = *this->ram.read(++this->registers.stackPointer);
-    uint8_t msb = *this->ram.read(++this->registers.stackPointer);
+    uint8_t status = *this->engine.read(++this->registers.stackPointer);
+    uint8_t lsb = *this->engine.read(++this->registers.stackPointer);
+    uint8_t msb = *this->engine.read(++this->registers.stackPointer);
 
     this->registers.statusRegister = status;
     this->registers.programCounter = ((msb << 8) + lsb) + 2;
@@ -984,8 +980,8 @@ void CPU6502::rti(AddressingMode mode, int ticks)
 void CPU6502::rts(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
-    uint8_t lsb = *this->ram.read(++this->registers.stackPointer);
-    uint8_t msb = *this->ram.read(++this->registers.stackPointer);
+    uint8_t lsb = *this->engine.read(++this->registers.stackPointer);
+    uint8_t msb = *this->engine.read(++this->registers.stackPointer);
     uint16_t newProgramCounter = ((msb << 8) + lsb) + 1;
     this->registers.programCounter = newProgramCounter;
 }
@@ -1026,21 +1022,21 @@ void CPU6502::sta(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     auto address = this->addressing(mode);
-    this->ram.write(address, this->registers.accumulator);
+    this->engine.write(address, this->registers.accumulator);
 }
 
 void CPU6502::stx(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     auto data = this->addressing(mode);
-    this->ram.write(data, this->registers.x);
+    this->engine.write(data, this->registers.x);
 }
 
 void CPU6502::sty(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     uint16_t data = this->addressing(mode);
-    this->ram.write(data, this->registers.y);
+    this->engine.write(data, this->registers.y);
 }
 
 void CPU6502::tax(AddressingMode mode, int ticks)
