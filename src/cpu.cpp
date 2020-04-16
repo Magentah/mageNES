@@ -53,7 +53,7 @@ void CPU6502::printStatus(uint8_t instruction)
     std::cout << "st: " << std::setw(4) << static_cast<int>(this->registers.statusRegister) << std::endl;
     std::cout << "cycle: " << std::dec << this->cycle << std::endl;*/
     std::cout << std::hex << std::setw(4) << std::setfill('0') << std::uppercase
-              << static_cast<int>(this->registers.programCounter)
+              << static_cast<int>(this->registers.programCounter - 1)
               << "\t" << std::setw(2) << static_cast<int>(instruction)
               << "\tA:" << std::setw(2) << static_cast<int>(this->registers.accumulator)
               << " X:" << static_cast<int>(this->registers.x)
@@ -319,8 +319,8 @@ void CPU6502::executeInstruction(uint8_t instruction)
 void CPU6502::step()
 {
     uint8_t instruction = this->getInstruction();
-    this->executeInstruction(instruction);
     this->registers.programCounter++;
+    this->executeInstruction(instruction);
 }
 
 void CPU6502::setStatusFlag(StatusFlag flag, bool enabled)
@@ -358,37 +358,37 @@ void CPU6502::tick(int times)
 // Addressing Modes
 uint16_t CPU6502::immediate()
 {
-    return ++this->registers.programCounter;
+    return this->registers.programCounter++;
 }
 
 uint16_t CPU6502::relative()
 {
-    uint8_t offset = *this->engine.read(++this->registers.programCounter);
+    uint8_t offset = *this->engine.read(this->registers.programCounter++);
     return this->registers.programCounter + offset;
 }
 
 uint16_t CPU6502::zeroPage()
 {
-    uint8_t address = *this->engine.read(++this->registers.programCounter);
+    uint8_t address = *this->engine.read(this->registers.programCounter++);
     return address % 256;
 }
 
 uint16_t CPU6502::zeroPageX()
 {
-    uint8_t address = *this->engine.read(++this->registers.programCounter);
+    uint8_t address = *this->engine.read(this->registers.programCounter++);
     return (address + this->registers.x) % 256;
 }
 
 uint16_t CPU6502::zeroPageY()
 {
-    uint8_t address = *this->engine.read(++this->registers.programCounter);
+    uint8_t address = *this->engine.read(this->registers.programCounter++);
     return (address + this->registers.y) % 256;
 }
 
 uint16_t CPU6502::absolute()
 {
-    uint8_t lsb = *this->engine.read(++this->registers.programCounter);
-    uint8_t msb = *this->engine.read(++this->registers.programCounter);
+    uint8_t lsb = *this->engine.read(this->registers.programCounter++);
+    uint8_t msb = *this->engine.read(this->registers.programCounter++);
     uint16_t address = (msb << 8) + lsb;
     return address;
 }
@@ -520,7 +520,7 @@ void CPU6502::bcc(AddressingMode mode, int ticks)
     {
         this->tick();
         uint16_t newProgramCounter = this->getAddress(mode);
-        this->tickIfNewPage(this->registers.programCounter + 1, newProgramCounter + 1);
+        this->tickIfNewPage(this->registers.programCounter, newProgramCounter);
         this->registers.programCounter = newProgramCounter;
     }
     else 
@@ -536,7 +536,7 @@ void CPU6502::bcs(AddressingMode mode, int ticks)
     {
         this->tick();
         uint16_t newProgramCounter = this->getAddress(mode);
-        this->tickIfNewPage(this->registers.programCounter + 1, newProgramCounter + 1);
+        this->tickIfNewPage(this->registers.programCounter, newProgramCounter);
         this->registers.programCounter = newProgramCounter;
     }
     else 
@@ -552,7 +552,7 @@ void CPU6502::beq(AddressingMode mode, int ticks)
     {
         this->tick();
         uint16_t newProgramCounter = this->getAddress(mode);
-        this->tickIfNewPage(this->registers.programCounter + 1, newProgramCounter + 1);
+        this->tickIfNewPage(this->registers.programCounter, newProgramCounter);
         this->registers.programCounter = newProgramCounter;
     }
     else 
@@ -568,7 +568,7 @@ void CPU6502::bmi(AddressingMode mode, int ticks)
     {
         this->tick();
         uint16_t newProgramCounter = this->getAddress(mode);
-        this->tickIfNewPage(this->registers.programCounter + 1, newProgramCounter + 1);
+        this->tickIfNewPage(this->registers.programCounter, newProgramCounter);
         this->registers.programCounter = newProgramCounter;
     }
     else
@@ -584,7 +584,7 @@ void CPU6502::bne(AddressingMode mode, int ticks)
     {
         this->tick();
         uint16_t newProgramCounter = this->getAddress(mode);
-        this->tickIfNewPage(this->registers.programCounter + 1, newProgramCounter + 1);
+        this->tickIfNewPage(this->registers.programCounter, newProgramCounter);
         this->registers.programCounter = newProgramCounter;
     }
     else
@@ -627,7 +627,7 @@ void CPU6502::bpl(AddressingMode mode, int ticks)
     {
         this->tick();
         uint16_t newProgramCounter = this->getAddress(mode);
-        this->tickIfNewPage(this->registers.programCounter + 1, newProgramCounter + 1);
+        this->tickIfNewPage(this->registers.programCounter, newProgramCounter);
         this->registers.programCounter = newProgramCounter;
     }
     else
@@ -644,7 +644,7 @@ void CPU6502::bvc(AddressingMode mode, int ticks)
     {
         this->tick();
         uint16_t newProgramCounter = this->getAddress(mode);
-        this->tickIfNewPage(this->registers.programCounter + 1, newProgramCounter + 1);
+        this->tickIfNewPage(this->registers.programCounter, newProgramCounter);
         this->registers.programCounter = newProgramCounter;
     }
     else
@@ -660,7 +660,7 @@ void CPU6502::bvs(AddressingMode mode, int ticks)
     {
         this->tick();
         uint16_t newProgramCounter = this->getAddress(mode);
-        this->tickIfNewPage(this->registers.programCounter + 1, newProgramCounter + 1);
+        this->tickIfNewPage(this->registers.programCounter, newProgramCounter);
         this->registers.programCounter = newProgramCounter;
     }
     else 
@@ -789,7 +789,7 @@ void CPU6502::jmp(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     uint16_t address = this->getAddress(mode);
-    this->registers.programCounter = address - 1;
+    this->registers.programCounter = address;
 }
 
 void CPU6502::jsr(AddressingMode mode, int ticks)
@@ -799,12 +799,12 @@ void CPU6502::jsr(AddressingMode mode, int ticks)
     // it to increase. Need to decrease/increase in JSR and RTS to make sure it works as expected.
     this->tick(ticks);
     uint16_t address = this->getAddress(mode);
-    uint16_t pc = this->registers.programCounter;
+    uint16_t pc = this->registers.programCounter - 1;
     uint8_t lsb = pc & 0xFF;
     uint8_t msb = pc >> 8;
     this->engine.pushStack(this->registers.stackPointer--, msb);
     this->engine.pushStack(this->registers.stackPointer--, lsb);
-    this->registers.programCounter = address - 1;
+    this->registers.programCounter = address;
 }
 
 void CPU6502::lda(AddressingMode mode, int ticks)
@@ -991,7 +991,7 @@ void CPU6502::rts(AddressingMode mode, int ticks)
     this->tick(ticks);
     uint8_t lsb = *this->engine.popStack(++this->registers.stackPointer);
     uint8_t msb = *this->engine.popStack(++this->registers.stackPointer);
-    uint16_t newProgramCounter = ((msb << 8) + lsb);
+    uint16_t newProgramCounter = ((msb << 8) + lsb) + 1;
     this->registers.programCounter = newProgramCounter;
 }
 
