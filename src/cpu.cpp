@@ -124,7 +124,7 @@ void CPU6502::executeInstruction(uint8_t instruction)
         case 0xB8: this->clv(AddressingMode::IMMEDIATE, 2); break;    // Clear overflow flag
 
         // CMP - Compare
-        case 0xC1: this->cmp(AddressingMode::INDIRECT_X, 2); break;
+        case 0xC1: this->cmp(AddressingMode::INDIRECT_X, 6); break;
         case 0xC5: this->cmp(AddressingMode::ZERO_PAGE, 3); break;
         case 0xC9: this->cmp(AddressingMode::IMMEDIATE, 2); break;
         case 0xCD: this->cmp(AddressingMode::ABSOLUTE, 4); break;
@@ -156,7 +156,7 @@ void CPU6502::executeInstruction(uint8_t instruction)
         case 0x88: this->dey(AddressingMode::IMMEDIATE, 2); break;
 
         // EOR - Exclusive OR
-        case 0x41: this->eor(AddressingMode::INDIRECT_X, 2); break;
+        case 0x41: this->eor(AddressingMode::INDIRECT_X, 6); break;
         case 0x45: this->eor(AddressingMode::ZERO_PAGE, 3); break;
         case 0x49: this->eor(AddressingMode::IMMEDIATE, 2); break;
         case 0x4D: this->eor(AddressingMode::ABSOLUTE, 4); break;
@@ -204,8 +204,8 @@ void CPU6502::executeInstruction(uint8_t instruction)
         // LDY - Load Y Register
         case 0xA0: this->ldy(AddressingMode::IMMEDIATE, 2); break;
         case 0xA4: this->ldy(AddressingMode::ZERO_PAGE, 3); break;
-        case 0xAC: this->ldy(AddressingMode::ZERO_PAGE_X, 4); break;
-        case 0xB4: this->ldy(AddressingMode::ABSOLUTE, 4); break;
+        case 0xAC: this->ldy(AddressingMode::ABSOLUTE, 4); break;
+        case 0xB4: this->ldy(AddressingMode::ZERO_PAGE_X, 4); break;
         case 0xBC: this->ldy(AddressingMode::ABSOLUTE_X, 4); break;
 
         // LSR - Logical Shift Right
@@ -296,7 +296,7 @@ void CPU6502::executeInstruction(uint8_t instruction)
         // STY - Store Y Register
         case 0x84: this->sty(AddressingMode::ZERO_PAGE, 3); break;
         case 0x8C: this->sty(AddressingMode::ABSOLUTE, 4); break;
-        case 0x94: this->sty(AddressingMode::ZERO_PAGE_Y, 4); break;
+        case 0x94: this->sty(AddressingMode::ZERO_PAGE_X, 4); break;
 
         // TAX - Transfer Accumulator to X
         case 0xAA: this->tax(AddressingMode::IMMEDIATE, 2); break;
@@ -408,7 +408,7 @@ uint16_t CPU6502::absoluteY(bool extraTick)
     uint16_t address = this->absolute();
     if (extraTick)
         this->tickIfNewPage(address, address + this->registers.y);
-    return address + this->registers.x;
+    return address + this->registers.y;
 }
 
 uint16_t CPU6502::indirect()
@@ -508,7 +508,8 @@ void CPU6502::asl(AddressingMode mode, int ticks)
         carry = (data >> 7) & 1;
         data <<= 1;
         zero = data == 0;
-        negative = data & 0x80;        
+        negative = data & 0x80;
+        this->engine.write(address, data);
     }
     
     this->setStatusFlag(StatusFlag::CARRY, carry);
@@ -730,10 +731,11 @@ void CPU6502::dec(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     uint16_t address = this->getAddress(mode, true);
-    std::shared_ptr<uint8_t> data = this->engine.read(address);
-    (*data)--;
-    this->setStatusFlag(StatusFlag::ZERO, *data == 0);
-    this->setStatusFlag(StatusFlag::NEGATIVE, *data & 0x80);
+    uint8_t data = *this->engine.read(address);
+    data--;
+    this->setStatusFlag(StatusFlag::ZERO, data == 0);
+    this->setStatusFlag(StatusFlag::NEGATIVE, data & 0x80);
+    this->engine.write(address, data);
 }
 
 void CPU6502::dex(AddressingMode mode, int ticks)
@@ -774,10 +776,11 @@ void CPU6502::inc(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     uint16_t address = this->getAddress(mode);
-    std::shared_ptr<uint8_t> data = this->engine.read(address);
-    (*data)++;
-    this->setStatusFlag(StatusFlag::ZERO, *data == 0);
-    this->setStatusFlag(StatusFlag::NEGATIVE, *data & 0x80);
+    uint8_t data = *this->engine.read(address);
+    data++;
+    this->setStatusFlag(StatusFlag::ZERO, data == 0);
+    this->setStatusFlag(StatusFlag::NEGATIVE, data & 0x80);
+    this->engine.write(address, data);
 }
 
 void CPU6502::iny(AddressingMode mode, int ticks)
@@ -861,6 +864,7 @@ void CPU6502::lsr(AddressingMode mode, int ticks)
         data >>= 1;
         zero = data == 0;
         negative = data & 0x80;
+        this->engine.write(address, data);
     }
     
     this->setStatusFlag(StatusFlag::CARRY, carry);
@@ -924,8 +928,7 @@ void CPU6502::rol(AddressingMode mode, int ticks)
     bool currentCarry = this->registers.statusRegister & StatusFlag::CARRY;
     if (mode == AddressingMode::ACCUMULATOR)
     {
-        this->setStatusFlag(StatusFlag::CARRY, (this->registers.accumulator << 7) & 1);
-        newCarry = (this->registers.accumulator >> 7) & 1;
+        this->setStatusFlag(StatusFlag::CARRY, (this->registers.accumulator >> 7) & 1);
         this->registers.accumulator <<= 1;
         this->registers.accumulator |= currentCarry;
         this->setStatusFlag(StatusFlag::ZERO, this->registers.accumulator == 0);
@@ -940,6 +943,7 @@ void CPU6502::rol(AddressingMode mode, int ticks)
         data |= currentCarry;
         this->setStatusFlag(StatusFlag::ZERO, data == 0);
         this->setStatusFlag(StatusFlag::NEGATIVE, data & 0x80);
+        this->engine.write(address, data);
     }
 }
 
@@ -965,6 +969,7 @@ void CPU6502::ror(AddressingMode mode, int ticks)
         data |= (currentCarry << 7);
         this->setStatusFlag(StatusFlag::ZERO, data == 0);
         this->setStatusFlag(StatusFlag::NEGATIVE, data & 0x80);
+        this->engine.write(address, data);
     }
 }
 
@@ -1025,7 +1030,7 @@ void CPU6502::sei(int ticks)
 void CPU6502::sta(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
-    uint16_t address = this->getAddress(mode, true);
+    uint16_t address = this->getAddress(mode, false);
     this->engine.write(address, this->registers.accumulator);
 }
 

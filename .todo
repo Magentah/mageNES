@@ -12,3 +12,6 @@
 
 ✔ Next thing to get working -- RTI @created(20-04-16 23:49) @done(20-04-17 12:32)
     Fails on Cyc 2183 currently. First RTI call.
+
+☐ Implement unsupported opcodes correctly, accounting for address mode @created(20-04-17 16:36)
+    Currently all unsupported opcodes are assumed to be 2 bytes, which is incorrect. 3 byte unsupported opcodes break test.
