@@ -30,12 +30,12 @@ void Engine::pushStack(uint8_t address, uint8_t data)
     this->ram.write(address + 0x0100, data);
 }
 
-std::shared_ptr<uint8_t> Engine::popStack(uint8_t address)
+const uint8_t& Engine::popStack(uint8_t address)
 {
     return this->ram.read(address + 0x0100);   
 }
 
-std::shared_ptr<uint8_t> Engine::read(uint16_t address)
+const uint8_t& Engine::read(uint16_t address)
 {
     if (address < 0x2000)
     {
@@ -51,11 +51,11 @@ std::shared_ptr<uint8_t> Engine::read(uint16_t address)
     }    
 }
 
-std::shared_ptr<uint16_t> Engine::read16(uint16_t address)
+const uint16_t Engine::read16(uint16_t address)
 {
     auto lsb = this->read(address);
     auto msb = this->read(address + 1);
-    return std::make_shared<uint16_t>(*lsb | (*msb << 8));
+    return (lsb | (msb << 8));
 }
 
 void Engine::write(uint16_t address, uint8_t data)
@@ -68,5 +68,4 @@ void Engine::write(uint16_t address, uint8_t data)
     {
         assert(false);
     }
-    
 }

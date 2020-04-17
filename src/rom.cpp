@@ -62,8 +62,8 @@ void ROM::printHeader()
     }
 }
 
-std::shared_ptr<uint8_t> ROM::read(uint16_t address)
+const uint8_t& ROM::read(uint16_t address)
 {
     address = (address - this->prgOffset) % this->prgData.size();
-    return std::make_shared<uint8_t>(std::move(this->prgData[address]));
+    return this->prgData[address];
 }

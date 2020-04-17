@@ -49,5 +49,5 @@ private:
 public:
     bool load(const std::string romFilePath, uint16_t prgOffset);
     void printHeader();
-    std::shared_ptr<uint8_t> read(uint16_t address);
+    const uint8_t& read(uint16_t address);
 };

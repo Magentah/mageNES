@@ -24,10 +24,10 @@ public:
 
     void load(std::string romFilePath, int pgrOffset);
 
-    std::shared_ptr<uint8_t> read(uint16_t address);
-    std::shared_ptr<uint16_t> read16(uint16_t address);
+    const uint8_t& read(uint16_t address);
+    const uint16_t read16(uint16_t address);
     void pushStack(uint8_t address, uint8_t data);
-    std::shared_ptr<uint8_t> popStack(uint8_t address);
+    const uint8_t& popStack(uint8_t address);
     void write(uint16_t address, uint8_t data);
     void run();
 };
