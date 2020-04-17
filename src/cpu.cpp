@@ -34,12 +34,14 @@ uint8_t CPU6502::getInstruction()
 void CPU6502::notImplemented(uint8_t instruction)
 {
     std::cout << "Not implemented opcode: " << std::hex << static_cast<int>(instruction) << std::endl;
+    this->tick();
 }
 
 void CPU6502::unknownInstruction(uint8_t instruction) 
 {
     std::cout << "Unknown opcode: " << std::hex << static_cast<int>(instruction) << std::endl;
     this->registers.programCounter++;
+    this->tick();
 }
 
 void CPU6502::printStatus(uint8_t instruction)
@@ -421,7 +423,7 @@ uint16_t CPU6502::indirect()
 
 uint16_t CPU6502::indirectX()
 {
-    uint16_t operand = this->absoluteX(false);
+    uint16_t operand = (*this->engine.read(this->registers.programCounter++) + this->registers.x) % 256;
     uint8_t lsb = *this->engine.read(operand);
     uint8_t msb = *this->engine.read((operand + 1) % 256);
     uint16_t address = (msb << 8) + lsb;
@@ -430,7 +432,7 @@ uint16_t CPU6502::indirectX()
 
 uint16_t CPU6502::indirectY(bool extraTick)
 {
-    uint16_t operand = this->immediate();
+    uint16_t operand = *this->engine.read(this->registers.programCounter++);
     uint8_t lsb = *this->engine.read(operand);
     uint8_t msb = *this->engine.read((operand + 1) % 256);
     uint16_t address = (msb << 8) + lsb;
@@ -487,6 +489,7 @@ void CPU6502::AND(AddressingMode mode, int ticks)
 
 void CPU6502::asl(AddressingMode mode, int ticks)
 {
+    this->tick(ticks);
     bool carry;
     bool zero;
     bool negative;
@@ -918,61 +921,51 @@ void CPU6502::plp(AddressingMode mode, int ticks)
 void CPU6502::rol(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
-    bool carry = this->registers.statusRegister & StatusFlag::CARRY;
-    bool newCarry;
-    bool zero;
-    bool negative;
+    bool currentCarry = this->registers.statusRegister & StatusFlag::CARRY;
     if (mode == AddressingMode::ACCUMULATOR)
     {
+        this->setStatusFlag(StatusFlag::CARRY, (this->registers.accumulator << 7) & 1);
         newCarry = (this->registers.accumulator >> 7) & 1;
         this->registers.accumulator <<= 1;
-        this->registers.accumulator |= carry;
-        zero = this->registers.accumulator == 0;
-        negative = this->registers.accumulator & 0x80;
+        this->registers.accumulator |= currentCarry;
+        this->setStatusFlag(StatusFlag::ZERO, this->registers.accumulator == 0);
+        this->setStatusFlag(StatusFlag::NEGATIVE, this->registers.accumulator & 0x80);
     }
     else
     {
         uint16_t address = this->getAddress(mode, true);
         uint8_t data = *this->engine.read(address);
-        newCarry = (data >> 7) & 1;
+        this->setStatusFlag(StatusFlag::CARRY, (data >> 7) & 1);
         data <<= 1;
-        data |= carry;
-        zero = data == 0;
-        negative = data & 0x80;
+        data |= currentCarry;
+        this->setStatusFlag(StatusFlag::ZERO, data == 0);
+        this->setStatusFlag(StatusFlag::NEGATIVE, data & 0x80);
     }
-       
-    this->setStatusFlag(StatusFlag::CARRY, newCarry);
-    this->setStatusFlag(StatusFlag::ZERO, zero);
-    this->setStatusFlag(StatusFlag::NEGATIVE, negative);
 }
 
 void CPU6502::ror(AddressingMode mode, int ticks)
 {
     this->tick(ticks);
     bool carry;
-    bool zero;
-    bool negative;
+    bool currentCarry = this->registers.statusRegister & StatusFlag::CARRY;
     if (mode == AddressingMode::ACCUMULATOR)
     {
-        carry = this->registers.accumulator & StatusFlag::CARRY;
+        this->setStatusFlag(StatusFlag::CARRY, this->registers.accumulator & 1);
         this->registers.accumulator >>= 1;
-        this->registers.accumulator |= (carry << 7);
-        zero = this->registers.accumulator == 0;
-        negative = this->registers.accumulator & 0x80;
+        this->registers.accumulator |= (currentCarry << 7);
+        this->setStatusFlag(StatusFlag::ZERO, this->registers.accumulator == 0);
+        this->setStatusFlag(StatusFlag::NEGATIVE, this->registers.accumulator & 0x80);
     }
     else
     {
         uint16_t address = this->getAddress(mode, true);
         uint8_t data = *this->engine.read(address);
-        carry = data & StatusFlag::CARRY;
+        this->setStatusFlag(StatusFlag::CARRY, data & 1);
         data >>= 1;
-        data |= (carry << 7);
-        zero = data == 0;
-        negative = data & 0x80;
+        data |= (currentCarry << 7);
+        this->setStatusFlag(StatusFlag::ZERO, data == 0);
+        this->setStatusFlag(StatusFlag::NEGATIVE, data & 0x80);
     }
-    this->setStatusFlag(StatusFlag::CARRY, carry);
-    this->setStatusFlag(StatusFlag::ZERO, zero);
-    this->setStatusFlag(StatusFlag::NEGATIVE, negative);
 }
 
 void CPU6502::rti(AddressingMode mode, int ticks)
@@ -982,8 +975,9 @@ void CPU6502::rti(AddressingMode mode, int ticks)
     uint8_t lsb = *this->engine.popStack(++this->registers.stackPointer);
     uint8_t msb = *this->engine.popStack(++this->registers.stackPointer);
 
+    status |= StatusFlag::BIT5;
     this->registers.statusRegister = status;
-    this->registers.programCounter = ((msb << 8) + lsb) + 2;
+    this->registers.programCounter = ((msb << 8) + lsb);
 }
 
 void CPU6502::rts(AddressingMode mode, int ticks)

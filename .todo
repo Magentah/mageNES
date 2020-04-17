@@ -9,3 +9,6 @@
 ☐ Setup ImGUI @created(20-04-15 00:54)
     Easy to use to add debug stuff to a window, instead of reading through terminal for everything.
     Will need it at some point, same as a window..
+
+✔ Next thing to get working -- RTI @created(20-04-16 23:49) @done(20-04-17 12:32)
+    Fails on Cyc 2183 currently. First RTI call.
