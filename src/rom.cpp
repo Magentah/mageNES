@@ -9,36 +9,36 @@ bool ROM::load(const std::string romFilePath, uint16_t prgOffset)
     std::ifstream file(romFilePath, std::ios::binary);
     if (file.is_open()) 
     {
-        file.read(reinterpret_cast<char*>(&this->header.nes), sizeof(this->header.nes));
-        file.read(reinterpret_cast<char*>(&this->header.prg16kbSize), sizeof(this->header.prg16kbSize));
-        file.read(reinterpret_cast<char*>(&this->header.chr8kbSize), sizeof(this->header.chr8kbSize));
-        file.read(reinterpret_cast<char*>(&this->header.flags6), sizeof(this->header.flags6));
-        file.read(reinterpret_cast<char*>(&this->header.flags7), sizeof(this->header.flags7));
-        file.read(reinterpret_cast<char*>(&this->header.flags8), sizeof(this->header.flags8));
-        file.read(reinterpret_cast<char*>(&this->header.flags9), sizeof(this->header.flags9));
-        file.read(reinterpret_cast<char*>(&this->header.flags10), sizeof(this->header.flags10));
-        file.read(reinterpret_cast<char*>(&this->header.zeros), sizeof(this->header.zeros));
+        file.read(reinterpret_cast<char*>(&m_header.nes), sizeof(m_header.nes));
+        file.read(reinterpret_cast<char*>(&m_header.prg16kbSize), sizeof(m_header.prg16kbSize));
+        file.read(reinterpret_cast<char*>(&m_header.chr8kbSize), sizeof(m_header.chr8kbSize));
+        file.read(reinterpret_cast<char*>(&m_header.flags6), sizeof(m_header.flags6));
+        file.read(reinterpret_cast<char*>(&m_header.flags7), sizeof(m_header.flags7));
+        file.read(reinterpret_cast<char*>(&m_header.flags8), sizeof(m_header.flags8));
+        file.read(reinterpret_cast<char*>(&m_header.flags9), sizeof(m_header.flags9));
+        file.read(reinterpret_cast<char*>(&m_header.flags10), sizeof(m_header.flags10));
+        file.read(reinterpret_cast<char*>(&m_header.zeros), sizeof(m_header.zeros));
 
-        this->trainer.reserve(512);
-        auto prgSize = this->header.prg16kbSize * this->PRG_SIZE_MULTIPLE;
-        auto chrSize = this->header.chr8kbSize * this->CHR_SIZE_MULTIPLE;
-        this->prgData.resize(prgSize);
-        this->chrData.resize(chrSize);
+        m_trainer.reserve(512);
+        auto prgSize = m_header.prg16kbSize * PRG_SIZE_MULTIPLE;
+        auto chrSize = m_header.chr8kbSize * CHR_SIZE_MULTIPLE;
+        m_prgData.resize(prgSize);
+        m_chrData.resize(chrSize);
 
-        this->isMirroring = (this->header.flags6 & Flag6::MIRRORING);
-        if (this->header.flags6 & Flag6::TRAINER_EXISTS) {
-            file.read((char*) this->trainer.data(), 512);
+        m_isMirroring = (m_header.flags6 & Flag6::MIRRORING);
+        if (m_header.flags6 & Flag6::TRAINER_EXISTS) {
+            file.read((char*) m_trainer.data(), 512);
         }
 
-        file.read((char*) this->prgData.data(), prgSize);
-        if (this->header.chr8kbSize > 0) 
+        file.read((char*) m_prgData.data(), prgSize);
+        if (m_header.chr8kbSize > 0) 
         {
-            file.read((char*) this->chrData.data(), chrSize);
+            file.read((char*) m_chrData.data(), chrSize);
         } else {
-            this->chrData = std::vector<uint8_t>(this->CHR_SIZE_MULTIPLE, 0);
+            m_chrData = std::vector<uint8_t>(CHR_SIZE_MULTIPLE, 0);
         }
-        this->prgOffset = prgOffset;
-        this->isLoaded = true;
+        m_prgOffset = prgOffset;
+        m_isLoaded = true;
         return true;
     }
     return false;
@@ -46,16 +46,16 @@ bool ROM::load(const std::string romFilePath, uint16_t prgOffset)
 
 void ROM::printHeader() 
 {
-    if (this->isLoaded) 
+    if (m_isLoaded) 
     {
         std::cout << "ROM Header :: " << std::endl;
-        std::cout << "Signature: " << this->header.nes << std::endl;
-        std::cout << "PRG ROM Size: " << this->prgData.size() << std::endl;
-        std::cout << "CHR ROM Size: " << this->chrData.size() << std::endl;
-        std::cout << "Is Mirroring: " << this->isMirroring << std::endl;
+        std::cout << "Signature: " << m_header.nes << std::endl;
+        std::cout << "PRG ROM Size: " << m_prgData.size() << std::endl;
+        std::cout << "CHR ROM Size: " << m_chrData.size() << std::endl;
+        std::cout << "Is Mirroring: " << m_isMirroring << std::endl;
         
-        std::bitset<8> flag6bits(this->header.flags6);
-        std::bitset<8> flag7bits(this->header.flags6);
+        std::bitset<8> flag6bits(m_header.flags6);
+        std::bitset<8> flag7bits(m_header.flags6);
 
         std::cout << "Flag 6 bits: " << flag6bits << std::endl;
         std::cout << "Flag 7 bits: " << flag7bits << std::endl;
@@ -64,6 +64,6 @@ void ROM::printHeader()
 
 const uint8_t& ROM::read(uint16_t address)
 {
-    address = (address - this->prgOffset) % this->prgData.size();
-    return this->prgData[address];
+    address = (address - m_prgOffset) % m_prgData.size();
+    return m_prgData[address];
 }

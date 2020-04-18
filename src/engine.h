@@ -11,13 +11,13 @@ class CPU6502;
 class Engine
 {
 private:
-    std::shared_ptr<CPU6502> cpu;
-    RAM ram;
-    ROM rom;
-    uint8_t stackPointer;
+    std::shared_ptr<CPU6502> m_cpu;
+    RAM m_ram;
+    ROM m_rom;
+    uint8_t m_stackPointer;
 
-    bool isRunning;
-    bool isInit;
+    bool m_isRunning;
+    bool m_isInit;
 public:
     Engine();
     ~Engine() {};

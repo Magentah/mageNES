@@ -54,12 +54,12 @@ struct Registers
 class CPU6502 
 {
 private:
-    Registers registers;
-    int cycle = 7;
-    int ppu = 0;
-    Engine& engine;
+    Registers m_registers;
+    int m_cycle = 7;
+    int m_ppu = 0;
+    Engine& m_engine;
 
-    void notImplemented(uint8_t instruction);
+    void unofficialNop(uint8_t instruction);
     void unknownInstruction(uint8_t instruction);
     void tickIfNewPage(uint16_t programCounter, uint16_t newProgramCounter);
     void tick(int times = 1);

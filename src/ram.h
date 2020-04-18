@@ -8,7 +8,7 @@
 class RAM
 {
 private: 
-    uint8_t ram[RAM_SIZE] = {0};
+    uint8_t m_ram[RAM_SIZE] = {0};
 
 
 public:

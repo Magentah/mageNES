@@ -4,6 +4,9 @@
 #include <string>
 #include <memory>
 
+#define PRG_SIZE_MULTIPLE 16384
+#define CHR_SIZE_MULTIPLE 8192
+
 enum Flag6 {
     MIRRORING = 0x01,
     BATTERY_RAM = 0x02,
@@ -31,21 +34,18 @@ struct INESHeader {
 
 class ROM {
 private:
-    INESHeader header;
-    std::vector<uint8_t> trainer;
-    std::vector<uint8_t> prgData;   // Program Data
-    std::vector<uint8_t> chrData;   // Character Data
-    std::vector<uint8_t> instRom;
-    std::vector<uint8_t> prom;
-    std::vector<uint8_t> title;
+    INESHeader m_header;
+    std::vector<uint8_t> m_trainer;
+    std::vector<uint8_t> m_prgData;   // Program Data
+    std::vector<uint8_t> m_chrData;   // Character Data
+    std::vector<uint8_t> m_instRom;
+    std::vector<uint8_t> m_prom;
+    std::vector<uint8_t> m_title;
 
-    bool isLoaded = false;
-    bool isMirroring;
-    uint8_t mapperNumber;
-    uint16_t prgOffset;
-
-    const int PRG_SIZE_MULTIPLE = 16384;
-    const int CHR_SIZE_MULTIPLE = 8192;
+    bool m_isLoaded = false;
+    bool m_isMirroring;
+    uint8_t m_mapperNumber;
+    uint16_t m_prgOffset;
 public:
     bool load(const std::string romFilePath, uint16_t prgOffset);
     void printHeader();
