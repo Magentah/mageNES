@@ -2,9 +2,11 @@
 build/
 tests/
 .vscode/
+.vs/
 
 #CMake
 CMakeFiles/
 CMakeCache.txt
+CMakeSettings.json
 cmake_install.cmake
 Makefile
