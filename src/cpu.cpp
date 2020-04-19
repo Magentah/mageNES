@@ -55,8 +55,8 @@ void CPU6502::unofficialNop(uint8_t instruction)
     // Absolute X
     // 0x9C is SAY / SHY. Unofficial opcode but does something.
     case 0x1C: case 0x3C: case 0x5C: case 0x7C: case 0x9C: case 0xDC: case 0xFC:
-        absoluteX(false);
-        tick(5);
+        absoluteX(true);
+        tick(4);
         break;
     // Absolute Y
     case 0x9E:
@@ -306,6 +306,7 @@ void CPU6502::executeInstruction(uint8_t instruction)
         case 0xE1: sbc(AddressingMode::INDIRECT_X, 6); break;
         case 0xE5: sbc(AddressingMode::ZERO_PAGE, 3); break;
         case 0xE9: sbc(AddressingMode::IMMEDIATE, 2); break;
+        case 0xEB: sbc(AddressingMode::IMMEDIATE, 2); break;    // Duplicate opcode
         case 0xED: sbc(AddressingMode::ABSOLUTE, 4); break;
         case 0xF1: sbc(AddressingMode::INDIRECT_Y, 5); break;
         case 0xF5: sbc(AddressingMode::ZERO_PAGE_X, 4); break;
@@ -357,6 +358,87 @@ void CPU6502::executeInstruction(uint8_t instruction)
 
         // TYA - Transfer Y to Accumulator
         case 0x98: tya(AddressingMode::IMMEDIATE, 2); break;
+
+        // Unofficial Opcodes
+        // ALR
+        case 0x4B: alr(AddressingMode::IMMEDIATE, 2); break;
+
+        // ANC
+        case 0x0B: anc(AddressingMode::IMMEDIATE, 2); break;
+
+        // ARR
+        case 0x6B: arr(AddressingMode::IMMEDIATE, 2); break;
+
+        // AXS
+        case 0xCB: axs(AddressingMode::IMMEDIATE, 2); break;
+
+        // LAX
+        case 0xA3: lax(AddressingMode::INDIRECT_X, 6); break;
+        case 0xA7: lax(AddressingMode::ZERO_PAGE, 3); break;
+        case 0xAF: lax(AddressingMode::ABSOLUTE, 4); break;
+        case 0xB3: lax(AddressingMode::INDIRECT_Y, 5); break;
+        case 0xB7: lax(AddressingMode::ZERO_PAGE_Y, 4); break;
+        case 0xBF: lax(AddressingMode::ABSOLUTE_Y, 4); break;
+
+        // SAX
+        case 0x83: sax(AddressingMode::INDIRECT_X, 6); break;
+        case 0x87: sax(AddressingMode::ZERO_PAGE, 3); break;
+        case 0x8F: sax(AddressingMode::ABSOLUTE, 4); break;
+        case 0x97: sax(AddressingMode::ZERO_PAGE_Y, 4); break;
+
+        // DCP -- DEC then CMP
+        case 0xC3: dcp(AddressingMode::INDIRECT_X, 8); break;
+        case 0xC7: dcp(AddressingMode::ZERO_PAGE, 5); break;
+        case 0xCF: dcp(AddressingMode::ABSOLUTE, 6); break;
+        case 0xD3: dcp(AddressingMode::INDIRECT_Y, 8); break;
+        case 0xD7: dcp(AddressingMode::ZERO_PAGE_X, 6); break;
+        case 0xDB: dcp(AddressingMode::ABSOLUTE_Y, 7); break;
+        case 0xDF: dcp(AddressingMode::ABSOLUTE_X, 7); break;
+
+        // ISC -- INC then SBC
+        case 0xE3: isc(AddressingMode::INDIRECT_X, 8); break; 
+        case 0xE7: isc(AddressingMode::ZERO_PAGE, 5); break;
+        case 0xEF: isc(AddressingMode::ABSOLUTE, 6); break;
+        case 0xF3: isc(AddressingMode::INDIRECT_Y, 8); break;
+        case 0xF7: isc(AddressingMode::ZERO_PAGE_X, 6); break;
+        case 0xFB: isc(AddressingMode::ABSOLUTE_Y, 7); break;
+        case 0xFF: isc(AddressingMode::ABSOLUTE_X, 7); break;
+
+        // RLA -- ROL then AND
+        case 0x23: rla(AddressingMode::INDIRECT_X, 8); break; 
+        case 0x27: rla(AddressingMode::ZERO_PAGE, 5); break;
+        case 0x2F: rla(AddressingMode::ABSOLUTE, 6); break;
+        case 0x33: rla(AddressingMode::INDIRECT_Y, 8); break;
+        case 0x37: rla(AddressingMode::ZERO_PAGE_X, 6); break;
+        case 0x3B: rla(AddressingMode::ABSOLUTE_Y, 7); break;
+        case 0x3F: rla(AddressingMode::ABSOLUTE_X, 7); break;
+
+        // RRA -- ROR then ADC
+        case 0x63: rra(AddressingMode::INDIRECT_X, 8); break; 
+        case 0x67: rra(AddressingMode::ZERO_PAGE, 5); break;
+        case 0x6F: rra(AddressingMode::ABSOLUTE, 6); break;
+        case 0x73: rra(AddressingMode::INDIRECT_Y, 8); break;
+        case 0x77: rra(AddressingMode::ZERO_PAGE_X, 6); break;
+        case 0x7B: rra(AddressingMode::ABSOLUTE_Y, 7); break;
+        case 0x7F: rra(AddressingMode::ABSOLUTE_X, 7); break;
+
+        // SLO -- ASL then ORA
+        case 0x03: slo(AddressingMode::INDIRECT_X, 8); break; 
+        case 0x07: slo(AddressingMode::ZERO_PAGE, 5); break;
+        case 0x0F: slo(AddressingMode::ABSOLUTE, 6); break;
+        case 0x13: slo(AddressingMode::INDIRECT_Y, 8); break;
+        case 0x17: slo(AddressingMode::ZERO_PAGE_X, 6); break;
+        case 0x1B: slo(AddressingMode::ABSOLUTE_Y, 7); break;
+        case 0x1F: slo(AddressingMode::ABSOLUTE_X, 7); break;
+
+        // SRE -- LSR then EOR
+        case 0x43: sre(AddressingMode::INDIRECT_X, 8); break; 
+        case 0x47: sre(AddressingMode::ZERO_PAGE, 5); break;
+        case 0x4F: sre(AddressingMode::ABSOLUTE, 6); break;
+        case 0x53: sre(AddressingMode::INDIRECT_Y, 8); break;
+        case 0x57: sre(AddressingMode::ZERO_PAGE_X, 6); break;
+        case 0x5B: sre(AddressingMode::ABSOLUTE_Y, 7); break;
+        case 0x5F: sre(AddressingMode::ABSOLUTE_X, 7); break;
 
         default: unofficialNop(instruction); break;
     }
@@ -505,13 +587,18 @@ uint16_t CPU6502::getAddress(AddressingMode mode, bool extraTick)
     }
 }
 
+const uint8_t& CPU6502::getDataWithMode(AddressingMode mode, bool extraTick)
+{
+    uint16_t address = getAddress(mode, extraTick);
+    return m_engine.read(address);
+}
+
 // Instructions
 
 void CPU6502::adc(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode, true);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode, true);
     bool carry = m_registers.statusRegister & StatusFlag::CARRY;
     uint16_t sum = data + m_registers.accumulator + carry;
     uint8_t overflow = (m_registers.accumulator ^ sum) & (data ^ sum) & 0x80;
@@ -525,8 +612,7 @@ void CPU6502::adc(AddressingMode mode, int ticks)
 void CPU6502::AND(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode, true);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode, true);
     m_registers.accumulator &= data;
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
@@ -645,8 +731,7 @@ void CPU6502::bne(AddressingMode mode, int ticks)
 void CPU6502::bit(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode);
     uint8_t result = m_registers.accumulator & data;
     setStatusFlag(StatusFlag::ZERO, result == 0);
     setStatusFlag(StatusFlag::OVERFLOW, (data >> 6) & 1);
@@ -745,8 +830,7 @@ void CPU6502::clv(AddressingMode mode, int ticks)
 void CPU6502::cmp(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode, true);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode, true);
     setStatusFlag(StatusFlag::CARRY, m_registers.accumulator >= data);
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == data);
     setStatusFlag(StatusFlag::NEGATIVE, (m_registers.accumulator - data) & 0x80);   
@@ -755,8 +839,7 @@ void CPU6502::cmp(AddressingMode mode, int ticks)
 void CPU6502::cpx(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode);
     setStatusFlag(StatusFlag::CARRY, m_registers.x >= data);
     setStatusFlag(StatusFlag::ZERO, m_registers.x == data);
     setStatusFlag(StatusFlag::NEGATIVE, (m_registers.x - data) & 0x80); 
@@ -765,8 +848,7 @@ void CPU6502::cpx(AddressingMode mode, int ticks)
 void CPU6502::cpy(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode);
     setStatusFlag(StatusFlag::CARRY, m_registers.y >= data);
     setStatusFlag(StatusFlag::ZERO, m_registers.y == data);
     setStatusFlag(StatusFlag::NEGATIVE, (m_registers.y - data) & 0x80); 
@@ -802,8 +884,7 @@ void CPU6502::dey(AddressingMode mode, int ticks)
 void CPU6502::eor(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode, true);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode, true);
     m_registers.accumulator ^= data;
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
@@ -861,8 +942,7 @@ void CPU6502::jsr(AddressingMode mode, int ticks)
 void CPU6502::lda(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode, true);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode, true);
     m_registers.accumulator = data;
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
@@ -871,8 +951,7 @@ void CPU6502::lda(AddressingMode mode, int ticks)
 void CPU6502::ldx(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode, true);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode, true);
     m_registers.x = data;
     setStatusFlag(StatusFlag::ZERO, m_registers.x == 0);
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.x & 0x80);    
@@ -881,8 +960,7 @@ void CPU6502::ldx(AddressingMode mode, int ticks)
 void CPU6502::ldy(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode, true);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode, true);
     m_registers.y = data;
     setStatusFlag(StatusFlag::ZERO, m_registers.y == 0);
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.y & 0x80);
@@ -926,8 +1004,7 @@ void CPU6502::nop(AddressingMode mode, int ticks)
 void CPU6502::ora(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode, true);
-    uint8_t data = m_engine.read(address);
+    uint8_t data = getDataWithMode(mode, true);
     m_registers.accumulator |= data;
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
     setStatusFlag(StatusFlag::NEGATIVE,m_registers.accumulator & 0x80);
@@ -1042,8 +1119,7 @@ void CPU6502::rts(AddressingMode mode, int ticks)
 void CPU6502::sbc(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    uint16_t address = getAddress(mode, true);
-    uint16_t data = (m_engine.read(address) ^ 0xFF);
+    uint8_t data = (getDataWithMode(mode, true) ^ 0xFF);
     bool carry = m_registers.statusRegister & StatusFlag::CARRY;
     uint16_t sum = data + m_registers.accumulator + carry;
     uint8_t overflow = (m_registers.accumulator ^ sum) & (data ^ sum) & 0x80;
@@ -1135,6 +1211,185 @@ void CPU6502::tya(AddressingMode mode, int ticks)
 {
     tick(ticks);
     m_registers.accumulator = m_registers.y;
+    setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
+    setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
+}
+
+// Unofficial Opcodes
+// AND #i, then LSR A.
+void CPU6502::alr(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    AND(mode, 0);
+    lsr(AddressingMode::ACCUMULATOR, 0);
+}
+
+// AND #i, then copy N to C.
+void CPU6502::anc(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    AND(mode, 0);
+    setStatusFlag(StatusFlag::CARRY, m_registers.statusRegister & StatusFlag::NEGATIVE);
+}
+
+// AND #i, then ROR A, except setting C to bit 6, and V to bit 6 XOR bit 5. N and Z are set as normal.
+void CPU6502::arr(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    AND(mode, 0);
+    bool carry;
+    bool currentCarry = m_registers.statusRegister & StatusFlag::CARRY;
+    setStatusFlag(StatusFlag::CARRY, (m_registers.accumulator >> 6) & 1);
+    m_registers.accumulator >>= 1;
+    m_registers.accumulator |= (currentCarry << 7);
+    setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
+    setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
+    setStatusFlag(StatusFlag::OVERFLOW, ((m_registers.accumulator >> 6) & 1) ^ ((m_registers.accumulator >> 5) & 1));
+}
+
+// A = A & X - value. Set NZC as normal.
+void CPU6502::axs(AddressingMode mode, int ticks)
+{
+    uint8_t data = getDataWithMode(mode);
+    m_registers.accumulator = (m_registers.accumulator & m_registers.x) - data;
+    setStatusFlag(StatusFlag::CARRY, m_registers.accumulator > 0xFF);
+    setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
+    setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
+}
+
+// LDA value, TAX.
+void CPU6502::lax(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    uint8_t data = getDataWithMode(mode, true);
+    m_registers.accumulator = data;
+    m_registers.x = data;
+    setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
+    setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
+}
+
+// Store A AND X, doesn't affect flags.
+void CPU6502::sax(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    uint16_t address = getAddress(mode);
+    uint8_t data = m_registers.accumulator & m_registers.x;
+    m_engine.write(address, data);
+}
+
+// DEC Value then CMP value
+void CPU6502::dcp(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    uint16_t address = getAddress(mode);
+    uint8_t data = m_engine.read(address);
+    data--;
+    m_engine.write(address, data);
+    setStatusFlag(StatusFlag::CARRY, m_registers.accumulator >= data);
+    setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == data);
+    setStatusFlag(StatusFlag::NEGATIVE, (m_registers.accumulator - data) & 0x80);   
+}
+
+// INC then SBC
+void CPU6502::isc(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    uint16_t address = getAddress(mode);
+    uint8_t data = m_engine.read(address);
+
+    // INC
+    data++;
+    m_engine.write(address, data);
+
+    // SBC
+    data = (data ^ 0xFF);
+    bool carry = m_registers.statusRegister & StatusFlag::CARRY;
+    uint16_t sum = data + m_registers.accumulator + carry;
+    uint8_t overflow = (m_registers.accumulator ^ sum) & (data ^ sum) & 0x80;    
+    m_registers.accumulator = sum;
+    setStatusFlag(StatusFlag::CARRY, sum > 0xFF);
+    setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
+    setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
+    setStatusFlag(StatusFlag::OVERFLOW, overflow); 
+}
+
+// ROL value, then AND value.
+void CPU6502::rla(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    bool currentCarry = m_registers.statusRegister & StatusFlag::CARRY;
+    uint16_t address = getAddress(mode);
+    uint8_t data = m_engine.read(address);
+
+    // ROL
+    setStatusFlag(StatusFlag::CARRY, (data >> 7) & 1);
+    data <<= 1;
+    data |= currentCarry;
+    m_engine.write(address, data);
+
+    // AND
+    m_registers.accumulator &= data;
+    setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
+    setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
+}
+
+// ROR value, then ADC value
+void CPU6502::rra(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    bool currentCarry = m_registers.statusRegister & StatusFlag::CARRY;
+    uint16_t address = getAddress(mode);
+    uint8_t data = m_engine.read(address);
+
+    // ROR
+    setStatusFlag(StatusFlag::CARRY, (data & 1) > 0);
+    data >>= 1;
+    data |= (currentCarry << 7);
+    m_engine.write(address, data);
+
+    // ADC
+    bool carry = m_registers.statusRegister & StatusFlag::CARRY;
+    uint16_t sum = data + m_registers.accumulator + carry;
+    m_registers.accumulator += data + (m_registers.statusRegister & StatusFlag::CARRY);
+    setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
+    setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
+    setStatusFlag(StatusFlag::CARRY, sum > 0xFF);
+    setStatusFlag(StatusFlag::OVERFLOW, (m_registers.accumulator ^ sum) & (data ^ sum) & 0x80);
+}
+
+// ASL value, then ORA value.
+void CPU6502::slo(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+
+    uint16_t address = getAddress(mode);
+    uint8_t data = m_engine.read(address);
+
+    // ASL
+    setStatusFlag(StatusFlag::CARRY, (data >> 7) & 1);
+    data <<= 1;
+    m_engine.write(address, data);
+
+    // ORA
+    m_registers.accumulator |= data;
+    setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
+    setStatusFlag(StatusFlag::NEGATIVE,m_registers.accumulator & 0x80);
+}
+
+// LSR value, then EOR value
+void CPU6502::sre(AddressingMode mode, int ticks)
+{
+    tick(ticks);
+    uint16_t address = getAddress(mode, false);
+    uint8_t data = m_engine.read(address);
+
+    // LSR
+    setStatusFlag(StatusFlag::CARRY, data & 1);
+    data >>= 1;
+    m_engine.write(address, data);
+
+    // EOR
+    m_registers.accumulator ^= data;
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
 }

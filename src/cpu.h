@@ -81,6 +81,7 @@ private:
     uint16_t indirectY(bool extraTick);
 
     uint16_t getAddress(AddressingMode mode, bool extraTick = false);
+    const uint8_t& getDataWithMode(AddressingMode mode, bool extraTick = false);
 
     // instructions
     void adc(AddressingMode mode, int ticks);
@@ -140,6 +141,20 @@ private:
     void txa(AddressingMode mode, int ticks);
     void txs(AddressingMode mode, int ticks);
     void tya(AddressingMode mode, int ticks);
+    
+    // Unofficial opcodes
+    void alr(AddressingMode mode, int ticks);
+    void anc(AddressingMode mode, int ticks);
+    void arr(AddressingMode mode, int ticks);
+    void axs(AddressingMode mode, int ticks);
+    void lax(AddressingMode mode, int ticks);
+    void sax(AddressingMode mode, int ticks);
+    void dcp(AddressingMode mode, int ticks);
+    void isc(AddressingMode mode, int ticks);
+    void rla(AddressingMode mode, int ticks);
+    void rra(AddressingMode mode, int ticks);
+    void slo(AddressingMode mode, int ticks);
+    void sre(AddressingMode mode, int ticks);
 
 public:
     void startup();

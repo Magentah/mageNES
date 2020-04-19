@@ -1,4 +1,4 @@
-☐ Do something about memory access. @created(20-04-15 00:50)
+✔ Do something about memory access. @created(20-04-15 00:50) @done(20-04-18 17:25)
     Memory Access right now basically just access ROM only, randomly accessing RAM for some opcodes.
     There's no actual checking of address ranges to know what to try to access memory for.
     This is causing issues now with the test rom file starting to access RAM, then getting ROM data back.
@@ -13,5 +13,7 @@
 ✔ Next thing to get working -- RTI @created(20-04-16 23:49) @done(20-04-17 12:32)
     Fails on Cyc 2183 currently. First RTI call.
 
-☐ Implement unsupported opcodes correctly, accounting for address mode @created(20-04-17 16:36)
+✔ Implement unofficial opcodes correctly, accounting for address mode @created(20-04-17 16:36) @done(20-04-19 17:40)
     Currently all unsupported opcodes are assumed to be 2 bytes, which is incorrect. 3 byte unsupported opcodes break test.
+    ✔ NOPs @created(20-04-18 17:24) @done(20-04-18 17:25)
+    ✔ Valid opcodes that are unofficial. @created(20-04-18 17:24) @done(20-04-19 17:40)
