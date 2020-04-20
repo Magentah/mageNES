@@ -29,5 +29,5 @@ public:
     void pushStack(uint8_t address, uint8_t data);
     const uint8_t& popStack(uint8_t address);
     void write(uint16_t address, uint8_t data);
-    void run();
+    bool run();
 };

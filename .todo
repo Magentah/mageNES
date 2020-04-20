@@ -5,10 +5,14 @@
 
 ☐ Setup SDL and OpenGL to have a window of some sort. @created(20-04-15 00:53)
     Not really necessary while working on CPU, but at some point there will need to be a window...
+    ☐ glTexImage2D to create a base texture that will then be updated with glTexSubImage2D @created(20-04-20 16:03)
+    ☐ Use glTexSubImage2D to update an existing 2d texture with pixel data from the PPU. @created(20-04-20 16:02)
+    ☐ Scale glTexImage2D for different resolutions? @created(20-04-20 16:03)
 
 ☐ Setup ImGUI @created(20-04-15 00:54)
     Easy to use to add debug stuff to a window, instead of reading through terminal for everything.
     Will need it at some point, same as a window..
+    ☐ Debug window? e.g. show register values, show instrction call list, show memory, etc @created(20-04-20 16:04)
 
 ✔ Next thing to get working -- RTI @created(20-04-16 23:49) @done(20-04-17 12:32)
     Fails on Cyc 2183 currently. First RTI call.

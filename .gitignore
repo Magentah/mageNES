@@ -3,6 +3,8 @@ build/
 tests/
 .vscode/
 .vs/
+dlls/
+enc_temp_folder/
 
 #CMake
 CMakeFiles/

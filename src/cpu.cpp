@@ -603,10 +603,10 @@ void CPU6502::adc(AddressingMode mode, int ticks)
     uint16_t sum = data + m_registers.accumulator + carry;
     uint8_t overflow = (m_registers.accumulator ^ sum) & (data ^ sum) & 0x80;
     setStatusFlag(StatusFlag::CARRY, sum > 0xFF);
-    m_registers.accumulator = sum;
+    m_registers.accumulator = (uint8_t)sum;
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
-    setStatusFlag(StatusFlag::OVERFLOW, overflow);
+    setStatusFlag(StatusFlag::OFLOW, overflow);
 }
 
 void CPU6502::AND(AddressingMode mode, int ticks)
@@ -734,7 +734,7 @@ void CPU6502::bit(AddressingMode mode, int ticks)
     uint8_t data = getDataWithMode(mode);
     uint8_t result = m_registers.accumulator & data;
     setStatusFlag(StatusFlag::ZERO, result == 0);
-    setStatusFlag(StatusFlag::OVERFLOW, (data >> 6) & 1);
+    setStatusFlag(StatusFlag::OFLOW, (data >> 6) & 1);
     setStatusFlag(StatusFlag::NEGATIVE, (data >> 7) & 1);
 }
 
@@ -751,7 +751,7 @@ void CPU6502::brk(AddressingMode mode, int ticks)
 
     uint8_t irclsb = m_engine.read(0xFFFE);
     uint8_t ircmsb = m_engine.read(0xFFFF);
-    m_registers.programCounter = ((ircmsb >> 8) + irclsb) - 1;
+    m_registers.programCounter = (((uint16_t)ircmsb >> 8) + irclsb) - 1;
 }
 
 void CPU6502::bpl(AddressingMode mode, int ticks)
@@ -774,7 +774,7 @@ void CPU6502::bpl(AddressingMode mode, int ticks)
 void CPU6502::bvc(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    if (!(m_registers.statusRegister & StatusFlag::OVERFLOW))
+    if (!(m_registers.statusRegister & StatusFlag::OFLOW))
     {
         tick();
         uint16_t newProgramCounter = getAddress(mode);
@@ -790,7 +790,7 @@ void CPU6502::bvc(AddressingMode mode, int ticks)
 void CPU6502::bvs(AddressingMode mode, int ticks)
 {
     tick(ticks);    
-    if (m_registers.statusRegister & StatusFlag::OVERFLOW)
+    if (m_registers.statusRegister & StatusFlag::OFLOW)
     {
         tick();
         uint16_t newProgramCounter = getAddress(mode);
@@ -824,7 +824,7 @@ void CPU6502::cli(AddressingMode mode, int ticks)
 void CPU6502::clv(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    setStatusFlag(StatusFlag::OVERFLOW, false);
+    setStatusFlag(StatusFlag::OFLOW, false);
 }
 
 void CPU6502::cmp(AddressingMode mode, int ticks)
@@ -1047,7 +1047,7 @@ void CPU6502::plp(AddressingMode mode, int ticks)
 void CPU6502::rol(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    bool currentCarry = m_registers.statusRegister & StatusFlag::CARRY;
+    uint8_t currentCarry = m_registers.statusRegister & StatusFlag::CARRY;
     if (mode == AddressingMode::ACCUMULATOR)
     {
         setStatusFlag(StatusFlag::CARRY, (m_registers.accumulator >> 7) & 1);
@@ -1072,7 +1072,6 @@ void CPU6502::rol(AddressingMode mode, int ticks)
 void CPU6502::ror(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    bool carry;
     bool currentCarry = m_registers.statusRegister & StatusFlag::CARRY;
     if (mode == AddressingMode::ACCUMULATOR)
     {
@@ -1124,10 +1123,10 @@ void CPU6502::sbc(AddressingMode mode, int ticks)
     uint16_t sum = data + m_registers.accumulator + carry;
     uint8_t overflow = (m_registers.accumulator ^ sum) & (data ^ sum) & 0x80;
     setStatusFlag(StatusFlag::CARRY, sum > 0xFF);
-    m_registers.accumulator = sum;
+    m_registers.accumulator = (uint8_t)sum;
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
-    setStatusFlag(StatusFlag::OVERFLOW, overflow);
+    setStatusFlag(StatusFlag::OFLOW, overflow);
 }
 
 void CPU6502::sec(int ticks)
@@ -1237,14 +1236,13 @@ void CPU6502::arr(AddressingMode mode, int ticks)
 {
     tick(ticks);
     AND(mode, 0);
-    bool carry;
     bool currentCarry = m_registers.statusRegister & StatusFlag::CARRY;
     setStatusFlag(StatusFlag::CARRY, (m_registers.accumulator >> 6) & 1);
     m_registers.accumulator >>= 1;
     m_registers.accumulator |= (currentCarry << 7);
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
-    setStatusFlag(StatusFlag::OVERFLOW, ((m_registers.accumulator >> 6) & 1) ^ ((m_registers.accumulator >> 5) & 1));
+    setStatusFlag(StatusFlag::OFLOW, ((m_registers.accumulator >> 6) & 1) ^ ((m_registers.accumulator >> 5) & 1));
 }
 
 // A = A & X - value. Set NZC as normal.
@@ -1306,18 +1304,18 @@ void CPU6502::isc(AddressingMode mode, int ticks)
     bool carry = m_registers.statusRegister & StatusFlag::CARRY;
     uint16_t sum = data + m_registers.accumulator + carry;
     uint8_t overflow = (m_registers.accumulator ^ sum) & (data ^ sum) & 0x80;    
-    m_registers.accumulator = sum;
+    m_registers.accumulator = (uint8_t)sum;
     setStatusFlag(StatusFlag::CARRY, sum > 0xFF);
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
-    setStatusFlag(StatusFlag::OVERFLOW, overflow); 
+    setStatusFlag(StatusFlag::OFLOW, overflow); 
 }
 
 // ROL value, then AND value.
 void CPU6502::rla(AddressingMode mode, int ticks)
 {
     tick(ticks);
-    bool currentCarry = m_registers.statusRegister & StatusFlag::CARRY;
+    uint8_t currentCarry = m_registers.statusRegister & StatusFlag::CARRY;
     uint16_t address = getAddress(mode);
     uint8_t data = m_engine.read(address);
 
@@ -1354,7 +1352,7 @@ void CPU6502::rra(AddressingMode mode, int ticks)
     setStatusFlag(StatusFlag::ZERO, m_registers.accumulator == 0);
     setStatusFlag(StatusFlag::NEGATIVE, m_registers.accumulator & 0x80);
     setStatusFlag(StatusFlag::CARRY, sum > 0xFF);
-    setStatusFlag(StatusFlag::OVERFLOW, (m_registers.accumulator ^ sum) & (data ^ sum) & 0x80);
+    setStatusFlag(StatusFlag::OFLOW, (m_registers.accumulator ^ sum) & (data ^ sum) & 0x80);
 }
 
 // ASL value, then ORA value.

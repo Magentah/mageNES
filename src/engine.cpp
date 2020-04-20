@@ -13,16 +13,15 @@ void Engine::load(std::string romFilePath, int prgOffset)
     m_isInit = m_rom.load(romFilePath, prgOffset);
 }
 
-void Engine::run()
+bool Engine::run()
 {
-    if (m_isInit)
-    {
-        m_isRunning = true;
-        while (m_isRunning)
-        {
-            m_cpu->step();
-        }
+    if (m_isInit) {
+        m_cpu->step();
+        if (m_cpu->getCycles() >= 27000)
+            return false;
+        return true;
     }
+    return false;
 }
 
 void Engine::pushStack(uint8_t address, uint8_t data)
@@ -44,6 +43,7 @@ const uint8_t& Engine::read(uint16_t address)
     else if (address >= 0x2000 && address < 0x4020)
     {
         assert(false);
+        // Read from somewhere that's not ram or rom.
     }
     else
     {
@@ -66,6 +66,6 @@ void Engine::write(uint16_t address, uint8_t data)
     }
     else
     {
-        assert(false);
+        // Write to somewhere that's not ram.
     }
 }

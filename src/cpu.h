@@ -20,7 +20,7 @@ enum StatusFlag
     DECIMAL = 1 << 3,
     BIT4 = 1 << 4,
     BIT5 = 1 << 5,
-    OVERFLOW = 1 << 6,
+    OFLOW = 1 << 6,
     NEGATIVE = 1 << 7
 };
 
@@ -53,6 +53,16 @@ struct Registers
 
 class CPU6502 
 {
+public:
+    void startup();
+    void reset();
+    void step();
+    CPU6502(Engine& engine);
+    ~CPU6502();
+
+    void setStatusFlag(StatusFlag flag, bool enabled);
+    int getCycles() { return m_cycle; }
+
 private:
     Registers m_registers;
     int m_cycle = 7;
@@ -155,13 +165,4 @@ private:
     void rra(AddressingMode mode, int ticks);
     void slo(AddressingMode mode, int ticks);
     void sre(AddressingMode mode, int ticks);
-
-public:
-    void startup();
-    void reset();
-    void step();
-    CPU6502(Engine& engine);
-    ~CPU6502();
-    
-    void setStatusFlag(StatusFlag flag, bool enabled);
 };
