@@ -11,6 +11,8 @@ class Engine;
 #define PROGRAM_COUNTER_STARTUP_VAL 0xC000
 #define STACK_POINTER_STARTUP_VAL 0xFD
 #define STATUS_REGISTER_STARTUP_VAL 0x24
+#define CPU_CLOCK_SPEED_NTSC 1789773 // 1.789773 MHz
+#define CPU_CLOCK_SPEED_PAL 1662607 // 1.662607 MHz
 
 enum StatusFlag
 {
@@ -41,6 +43,12 @@ enum AddressingMode
     IMPLIED
 };
 
+enum class Region
+{
+    NTSC,
+    PAL
+};
+
 struct Registers
 {
     uint8_t accumulator;
@@ -62,6 +70,8 @@ public:
 
     void setStatusFlag(StatusFlag flag, bool enabled);
     int getCycles() { return m_cycle; }
+    int getCyclesPerFrame() { return m_cyclesPerFrame; }
+    void resetCycleCount() { m_cycle = 0; }
 
 private:
     Registers m_registers;
@@ -69,6 +79,8 @@ private:
     int m_ppu = 0;
     Engine& m_engine;
     bool m_enablePrint = false;
+    uint32_t m_cyclesPerFrame = CPU_CLOCK_SPEED_NTSC / 60;
+    Region m_region = Region::NTSC;
 
     void unofficialNop(uint8_t instruction);
     void unknownInstruction(uint8_t instruction);

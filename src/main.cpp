@@ -98,8 +98,8 @@ int main(int argc, char** argv) {
 
         while (!quit)
         {
+            // Need to run the engine for 1 frame instead of 1 cycle.
             engine.run();
-            quit = engine.endRunning();
             while (SDL_PollEvent(&event))
             {
                 ImGui_ImplSDL2_ProcessEvent(&event);

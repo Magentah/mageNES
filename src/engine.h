@@ -29,6 +29,7 @@ private:
     RAM m_ram;
     ROM m_rom;
     uint8_t m_stackPointer;
+    uint64_t m_totalCycleCount;
 
     bool m_isRunning;
     bool m_isInit;

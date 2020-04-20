@@ -1,5 +1,5 @@
 #include "engine.h"
-
+#include <iostream>
 #include <cassert>
 
 Engine::Engine(bool enableCpuPrint)
@@ -13,12 +13,18 @@ void Engine::load(std::string romFilePath, int prgOffset)
     m_isInit = m_rom.load(romFilePath, prgOffset);
 }
 
+// Runs the engine for 1 frame.
 void Engine::run()
 {
     if (m_isInit) {
-        m_cpu->step();
-        if (m_cpu->getCycles() >= 27000)
-            m_endRunning = true;
+        // CPU needs to step multiple times for 1 render frame.
+        do
+        {
+            m_cpu->step();
+            // PPU 3x
+            // APU
+        } while (m_cpu->getCycles() < m_cpu->getCyclesPerFrame());
+        m_cpu->resetCycleCount();
     }
 }
 
