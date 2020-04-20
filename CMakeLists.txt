@@ -12,6 +12,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 file(GLOB NesEmu_SOURCE
     "src/*.cpp"
     "src/*.h"
+    "src/imgui/*.cpp"
+    "src/imgui/*.h"
 )
 
 find_package(SDL2 REQUIRED)

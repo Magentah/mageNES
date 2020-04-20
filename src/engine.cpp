@@ -2,26 +2,24 @@
 
 #include <cassert>
 
-Engine::Engine()
+Engine::Engine(bool enableCpuPrint)
 {
     m_cpu = std::make_shared<CPU6502>(CPU6502(*this));
+    m_cpu->startup(enableCpuPrint);
 }
 
 void Engine::load(std::string romFilePath, int prgOffset)
-{
-    m_cpu->startup();
+{    
     m_isInit = m_rom.load(romFilePath, prgOffset);
 }
 
-bool Engine::run()
+void Engine::run()
 {
     if (m_isInit) {
         m_cpu->step();
         if (m_cpu->getCycles() >= 27000)
-            return false;
-        return true;
+            m_endRunning = true;
     }
-    return false;
 }
 
 void Engine::pushStack(uint8_t address, uint8_t data)

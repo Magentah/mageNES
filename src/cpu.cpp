@@ -10,7 +10,7 @@ CPU6502::CPU6502(Engine& engine)
 
 CPU6502::~CPU6502() {}
 
-void CPU6502::startup()
+void CPU6502::startup(bool enablePrint)
 {
     m_registers.x = 0;
     m_registers.y = 0;
@@ -18,11 +18,13 @@ void CPU6502::startup()
     m_registers.programCounter = PROGRAM_COUNTER_STARTUP_VAL;
     m_registers.stackPointer = STACK_POINTER_STARTUP_VAL;
     m_registers.statusRegister = STATUS_REGISTER_STARTUP_VAL;
+
+    m_enablePrint = enablePrint;
 }
 
 void CPU6502::reset()
 {
-    startup();
+    startup(m_enablePrint);
 }
 
 uint8_t CPU6502::getInstruction()
@@ -90,6 +92,8 @@ void CPU6502::unknownInstruction(uint8_t instruction)
 
 void CPU6502::printStatus(uint8_t instruction)
 {
+    if (!m_enablePrint)
+        return;
     /*std::cout << "opcode: " << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << static_cast<int>(instruction) << std::endl;
     std::cout << "a: " << std::setw(4) << static_cast<int>(m_registers.accumulator) << std::endl;
     std::cout << "x: " << std::setw(4) << static_cast<int>(m_registers.x) << std::endl;

@@ -54,7 +54,7 @@ struct Registers
 class CPU6502 
 {
 public:
-    void startup();
+    void startup(bool enablePrint);
     void reset();
     void step();
     CPU6502(Engine& engine);
@@ -68,6 +68,7 @@ private:
     int m_cycle = 7;
     int m_ppu = 0;
     Engine& m_engine;
+    bool m_enablePrint = false;
 
     void unofficialNop(uint8_t instruction);
     void unknownInstruction(uint8_t instruction);

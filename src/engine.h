@@ -10,16 +10,8 @@ class CPU6502;
 
 class Engine
 {
-private:
-    std::shared_ptr<CPU6502> m_cpu;
-    RAM m_ram;
-    ROM m_rom;
-    uint8_t m_stackPointer;
-
-    bool m_isRunning;
-    bool m_isInit;
 public:
-    Engine();
+    Engine(bool enableCpuPrint);
     ~Engine() {};
 
     void load(std::string romFilePath, int pgrOffset);
@@ -29,5 +21,16 @@ public:
     void pushStack(uint8_t address, uint8_t data);
     const uint8_t& popStack(uint8_t address);
     void write(uint16_t address, uint8_t data);
-    bool run();
+    void run();
+    bool endRunning() const { return m_endRunning; };
+
+private:
+    std::shared_ptr<CPU6502> m_cpu;
+    RAM m_ram;
+    ROM m_rom;
+    uint8_t m_stackPointer;
+
+    bool m_isRunning;
+    bool m_isInit;
+    bool m_endRunning = false;
 };
