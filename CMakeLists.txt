@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(nesemu VERSION 0.1)
+project(magenes VERSION 0.1)
 
 if (WIN32)
     set(SDL2_DIR D:/Dev/Libraries/sdl2/devel)
@@ -9,7 +9,7 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
-file(GLOB NesEmu_SOURCE
+file(GLOB magenes_SOURCE
     "src/*.cpp"
     "src/*.h"
     "src/imgui/*.cpp"
@@ -20,14 +20,14 @@ find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
-add_executable(nesemu ${NesEmu_SOURCE})
+add_executable(magenes ${magenes_SOURCE})
 add_subdirectory(glad/)
 
 if(WIN32)
-    target_link_libraries(nesemu PRIVATE  ${SDL2_LIBRARIES} glad opengl32 ${CMAKE_DL_LIBS})
+    target_link_libraries(magenes PRIVATE  ${SDL2_LIBRARIES} glad opengl32 ${CMAKE_DL_LIBS})
 endif()
 if(UNIX)
-    target_link_libraries(nesemu PRIVATE stdc++fs ${SDL2_LIBRARIES} glad ${CMAKE_DL_LIBS})
+    target_link_libraries(magenes PRIVATE stdc++fs ${SDL2_LIBRARIES} glad ${CMAKE_DL_LIBS})
 endif()
 
 # Copy dlls
