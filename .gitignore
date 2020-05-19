@@ -5,6 +5,12 @@ tests/
 .vs/
 dlls/
 enc_temp_folder/
+.ninja*
+*.ninja
+imgui.ini
+.DS_Store
+glad/*.a
+magenes
 
 #CMake
 CMakeFiles/

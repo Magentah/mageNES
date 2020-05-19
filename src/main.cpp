@@ -6,10 +6,10 @@
 #include <chrono>
 #include <glad/glad.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
     #include <SDL.h>
     #include <SDL_opengl.h>
-#elif __unix__
+#elif defined(__unix__)
     #include <SDL2/SDL.h>
     #include <SDL2/SDL_opengl.h>
 #endif
@@ -41,14 +41,9 @@ int main(int argc, char** argv) {
     {
         engine.run();
     }
-#elif _WIN32
+#elif defined(_WIN32) || defined(__APPLE__)
 
-    const char* glsl_version = "#version 130";
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
+    const char* glsl_version = "#version 330";
     SDL_Window* window = NULL;
     SDL_Surface* surface = NULL;
     SDL_Event event;
@@ -60,6 +55,12 @@ int main(int argc, char** argv) {
     }
     else
     {
+        // Set opengl version, core profile.
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
         // Create window with graphics context
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -67,7 +68,9 @@ int main(int argc, char** argv) {
         SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
         SDL_Window* window = SDL_CreateWindow("mageNES", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
         SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-        SDL_GL_MakeCurrent(window, gl_context);
+        if (SDL_GL_MakeCurrent(window, gl_context) != 0) {
+            std::cout << "Failed to make current context for window. SDL_Error: " << SDL_GetError() << std::endl;
+        };
         //SDL_GL_SetSwapInterval(1); // Enable vsync
 
         if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
